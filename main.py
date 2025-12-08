@@ -22,8 +22,8 @@ REALESRGAN_EXE = BASE_DIR / "realesrgan" / "realesrgan-ncnn-vulkan.exe"
 
 remove = None
 
-from PySide6.QtCore import Qt, QSize, QTimer
-from PySide6.QtGui import QAction, QPixmap, QFont, QIcon
+from PySide6.QtCore import Qt, QSize, QTimer, QUrl
+from PySide6.QtGui import QAction, QPixmap, QFont, QIcon, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem, QLabel, QPushButton, QFileDialog,
@@ -466,7 +466,7 @@ class BgRemoverTab(QWidget):
 
 
 # ==========================================
-# TAB 2: UPSCALER (Real-ESRGAN)
+# TAB 2: UPSCALER (Real-ESRGAN) - FIXED
 # ==========================================
 
 class UpscalerTab(QWidget):
@@ -479,6 +479,7 @@ class UpscalerTab(QWidget):
 
         self.current_original_pixmap: QPixmap | None = None
         self.current_result_pixmap: QPixmap | None = None
+        self.current_viewing_path: Path | None = None  # Track path yang sedang dilihat
 
         self.pixel_labels: list[QLabel] = []
         self._running_index = 0
@@ -495,11 +496,14 @@ class UpscalerTab(QWidget):
         main_layout = QHBoxLayout()
         outer_layout.addLayout(main_layout, stretch=1)
 
-        # LEFT: File List
+        # KIRI: List File
         left_layout = QVBoxLayout()
         main_layout.addLayout(left_layout, stretch=1)
 
         self.file_list = QListWidget()
+        # GANTI SIGNAL: Pakai currentItemChanged biar lebih akurat daripada row index
+        self.file_list.currentItemChanged.connect(self.on_item_changed)
+        
         lbl_list = QLabel("LOADED IMAGES (Upscaler):")
         lbl_list.setStyleSheet("border: none; background: transparent;")
         left_layout.addWidget(lbl_list)
@@ -515,7 +519,7 @@ class UpscalerTab(QWidget):
         left_btn_row.addWidget(btn_clear)
         left_layout.addLayout(left_btn_row)
 
-        # RIGHT: Preview & Controls
+        # KANAN: Preview & Kontrol
         right_layout = QVBoxLayout()
         main_layout.addLayout(right_layout, stretch=3)
 
@@ -531,7 +535,7 @@ class UpscalerTab(QWidget):
         previews_layout.addWidget(self.original_label, stretch=1)
         previews_layout.addWidget(self.result_label, stretch=1)
 
-        # Upscale Options
+        # Opsi Upscale
         right_layout.addSpacing(6)
         opt_row = QHBoxLayout()
 
@@ -543,14 +547,13 @@ class UpscalerTab(QWidget):
 
         opt_row.addWidget(QLabel("Model:"))
         self.model_combo = QComboBox()
-        # Model name must match 'realesrgan' folder
         self.model_combo.addItems(["realesrgan-x4plus", "realesrgan-x4plus-anime"])
         self.model_combo.setCurrentText("realesrgan-x4plus")
         opt_row.addWidget(self.model_combo)
 
         right_layout.addLayout(opt_row)
 
-        # Process Buttons
+        # Tombol Proses
         right_layout.addSpacing(10)
         btn_row = QHBoxLayout()
         self.btn_upscale_selected = QPushButton("Upscale (Selected)")
@@ -564,7 +567,7 @@ class UpscalerTab(QWidget):
 
         right_layout.addStretch(1)
 
-        # Bottom Bar
+        # Bar Bawah
         bottom_frame = QFrame()
         bottom_frame.setObjectName("PixelBar")
         bar_layout = QHBoxLayout(bottom_frame)
@@ -618,7 +621,7 @@ class UpscalerTab(QWidget):
         self._running_index += 1
         self.pixel_labels[idx].setText(self._random_running_value() + "  •")
 
-    # --- File List & Selection ---
+    # --- List File & Selection ---
 
     def add_images(self):
         files, _ = QFileDialog.getOpenFileNames(
@@ -633,7 +636,7 @@ class UpscalerTab(QWidget):
             if path not in self.image_paths:
                 self.image_paths.append(path)
                 item = QListWidgetItem(path.name)
-                item.setData(Qt.UserRole, path)
+                item.setData(Qt.UserRole, path) # Simpan path di item
                 self.file_list.addItem(item)
                 added += 1
 
@@ -648,14 +651,18 @@ class UpscalerTab(QWidget):
         self.current_result_pixmap = None
         self._update_previews(None)
 
-    def on_file_selected(self, row: int):
-        if row < 0 or row >= len(self.image_paths):
+    # REVISI LOGIC SELECTION
+    def on_item_changed(self, current, previous):
+        if not current:
             self._update_previews(None)
             return
-        path = self.image_paths[row]
+        
+        # Ambil path langsung dari item data (lebih aman daripada index row)
+        path = current.data(Qt.UserRole)
         self._update_previews(path)
 
     def _update_previews(self, path: Path | None):
+        self.current_viewing_path = path # Track current path
         orig_label: QLabel = self.original_label.image_label  # type: ignore
         res_label: QLabel = self.result_label.image_label      # type: ignore
 
@@ -666,6 +673,7 @@ class UpscalerTab(QWidget):
             res_label.setText("(no result)")
             return
 
+        # Tampilkan Original
         pix = QPixmap(str(path))
         if not pix.isNull():
             self.current_original_pixmap = pix
@@ -679,6 +687,7 @@ class UpscalerTab(QWidget):
             orig_label.setPixmap(QPixmap())
             orig_label.setText("(failed to load)")
 
+        # Tampilkan Hasil (kalau ada di map)
         out = self.output_map.get(path)
         if out is not None and out.exists():
             pix_res = QPixmap(str(out))
@@ -692,19 +701,20 @@ class UpscalerTab(QWidget):
                 res_label.setText("")
                 return
 
+        # Belum ada hasil
+        self.current_result_pixmap = None
         res_label.setPixmap(QPixmap())
         res_label.setText("(no result yet)")
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        row = self.file_list.currentRow()
-        if 0 <= row < len(self.image_paths):
-            self._update_previews(self.image_paths[row])
+        # Rescale saat window di-resize agar gambar tidak hilang
+        if self.current_viewing_path:
+            self._update_previews(self.current_viewing_path)
 
-    # --- Output Folder ---
+    # --- Folder Output ---
 
     def ensure_output_dir(self, sample_input: Path) -> Path:
-        # Create LABOKit_UP folder next to input file
         if self.output_dir is None:
             base = sample_input.parent
             out = base / "LABOKit_UP"
@@ -722,9 +732,9 @@ class UpscalerTab(QWidget):
         folder = QFileDialog.getExistingDirectory(self, "Select Upscale output folder")
         if folder:
             self.output_dir = Path(folder)
-            self.output_label.setText(f"Upscale OUTPUT FOLDER: {self.output_dir}")
+            self.output_label.setText(f"UPSCALE OUTPUT FOLDER: {self.output_dir}")
 
-    # --- Upscaling Process ---
+    # --- Proses Upscaling ---
 
     def upscale_selected(self):
         paths: list[Path] = []
@@ -768,8 +778,7 @@ class UpscalerTab(QWidget):
         progress.setWindowTitle("LABOKit - Upscaler")
         progress.show()
 
-        # Parse scale
-        scale_text = self.scale_combo.currentText()  # "2x" / "4x"
+        scale_text = self.scale_combo.currentText()
         try:
             scale = int(scale_text.replace("x", ""))
         except ValueError:
@@ -809,9 +818,9 @@ class UpscalerTab(QWidget):
             f"Output folder:\n{out_dir}",
         )
 
-        row = self.file_list.currentRow()
-        if 0 <= row < len(self.image_paths):
-            self._update_previews(self.image_paths[row])
+        # Refresh preview item yang lagi dipilih
+        if self.file_list.currentItem():
+            self.on_item_changed(self.file_list.currentItem(), None)
 
     def _upscale_file(self, input_path: Path, output_path: Path, scale: int, model_name: str):
         cmd = [
@@ -821,7 +830,12 @@ class UpscalerTab(QWidget):
             "-n", model_name,
             "-s", str(scale),
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        # Untuk Windows, sembunyikan console window subprocess
+        creationflags = 0
+        if sys.platform == "win32":
+            creationflags = subprocess.CREATE_NO_WINDOW
+
+        result = subprocess.run(cmd, capture_output=True, text=True, creationflags=creationflags)
         if result.returncode != 0:
             raise RuntimeError(result.stderr or "Unknown error from Real-ESRGAN")
 
@@ -850,14 +864,9 @@ class UpscalerTab(QWidget):
             "5. Preview\n"
             "   • Click on an item in the list to see the original on the left.\n"
             "   • After upscaling, the result will appear in the 'Result (Upscaled)'\n"
-            "     preview panel.\n\n"
-            "Note:\n"
-            "   • This tab calls the external binary 'realesrgan-ncnn-vulkan.exe'.\n"
-            "     Make sure it and its models are placed in the 'realesrgan' folder\n"
-            "     inside the LABOKit directory.\n"
+            "     preview panel.\n"
         )
         QMessageBox.information(self, "How To Use – Upscaler", text)
-
 
 # ==========================================
 # MAIN WINDOW & PLUGINS
@@ -1017,6 +1026,9 @@ class LABOKitMainWindow(QMainWindow):
             text,
         )
 
+    def open_url(self, url):
+        QDesktopServices.openUrl(QUrl(url))
+
     def _setup_menu(self):
         menubar = self.menuBar()
 
@@ -1062,6 +1074,17 @@ class LABOKitMainWindow(QMainWindow):
 
         # Submenu plugins
         self.plugins_help_menu = help_menu.addMenu("Plugins")
+
+        # Menu: Support
+        support_menu = menubar.addMenu("&Support")
+
+        act_trakteer = QAction("Get Plugins (Trakteer ID)", self)
+        act_trakteer.triggered.connect(lambda: self.open_url("https://trakteer.id/kano-bbif7/showcase/labokit-advanced-plugins-m84J6"))
+        support_menu.addAction(act_trakteer)
+
+        act_kofi = QAction("Get Plugins (Ko-fi)", self)
+        act_kofi.triggered.connect(lambda: self.open_url("https://ko-fi.com/s/a367e473fe"))
+        support_menu.addAction(act_kofi)
 
 
     # --- Menu Actions ---
@@ -1164,7 +1187,6 @@ def main():
 
     app.setStyleSheet("""
         QMainWindow { background-color: #e9edf5; }
-        /* ... (paste sisa CSS style kamu di sini seperti sebelumnya) ... */
         QTabWidget::pane { border: 1px solid #b3bcd1; border-radius: 4px; top: -1px; }
         QTabBar::tab { background-color: #dde4f5; border: 1px solid #b3bcd1; padding: 4px 12px; border-top-left-radius: 4px; border-top-right-radius: 4px; color: #1c2333; }
         QTabBar::tab:selected { background-color: #f5f7fb; }
