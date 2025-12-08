@@ -6,6 +6,7 @@ import importlib.util
 import importlib.machinery
 import shutil
 from pathlib import Path
+from PIL import Image
 
 # --- PATH & ASSETS SETUP ---
 # 1. Internal Path (Source files inside EXE/Build)
@@ -438,25 +439,50 @@ class UpscalerTab(QWidget):
         
         out = self.ensure_out(paths[0])
         dlg = QProgressDialog("Upscaling...", "Cancel", 0, len(paths), self)
-        dlg.setWindowModality(Qt.ApplicationModal); dlg.show()
+        dlg.setWindowModality(Qt.ApplicationModal)
+        dlg.show()
         
         cnt = 0
-        scale = int(self.combo_s.currentText().replace("x",""))
+        target_scale = int(self.combo_s.currentText().replace("x",""))
         model = self.combo_m.currentText()
         
         for i, p in enumerate(paths):
             if dlg.wasCanceled(): break
             dlg.setLabelText(f"Processing {p.name}...")
             QApplication.processEvents()
+            
             try:
-                opath = out / f"{p.stem}_up{scale}x.png"
-                cmd = [str(REALESRGAN_EXE), "-i", str(p), "-o", str(opath), "-n", model, "-s", str(scale)]
+                opath = out / f"{p.stem}_up{target_scale}x.png"
+                
+                exec_scale = 4 
+                
+                cmd = [
+                    str(REALESRGAN_EXE), 
+                    "-i", str(p), 
+                    "-o", str(opath), 
+                    "-n", model, 
+                    "-s", str(exec_scale)
+                ]
+                
                 flags = subprocess.CREATE_NO_WINDOW if sys.platform=="win32" else 0
-                subprocess.run(cmd, capture_output=True, creationflags=flags)
+                
+                subprocess.run(cmd, capture_output=True, creationflags=flags, cwd=str(REALESRGAN_DIR))
+                
+                if target_scale == 2:
+
+                    with Image.open(opath) as img:
+                        new_w = img.width // 2
+                        new_h = img.height // 2
+                        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                        img.save(opath)
+
                 self.output_map[p] = opath
                 cnt += 1
-            except Exception as e: print(e)
+            except Exception as e: 
+                print(f"Upscale Error: {e}")
+            
             dlg.setValue(i+1)
+        
         dlg.close()
         QMessageBox.information(self, "Done", f"Upscaled {cnt} images.\nFolder: {out}")
         if self.list_w.currentItem(): self.on_item(self.list_w.currentItem(), None)
@@ -479,6 +505,7 @@ class UpscalerTab(QWidget):
             "This feature requires a Vulkan-compatible GPU. On first run, it might take a few seconds to initialize."
         )
         QMessageBox.information(self, "Help – Upscaler", text)
+        
 
 # ==========================================
 # MAIN WINDOW
