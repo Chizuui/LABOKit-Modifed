@@ -20,7 +20,7 @@ PLUGIN_DIR.mkdir(exist_ok=True)
 # Check this path if you use different file/folder names
 REALESRGAN_EXE = BASE_DIR / "realesrgan" / "realesrgan-ncnn-vulkan.exe"
 
-from rembg import remove
+remove = None
 
 from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QAction, QPixmap, QFont, QIcon
@@ -426,11 +426,12 @@ class BgRemoverTab(QWidget):
             self._update_previews(self.image_paths[row])
 
     def _remove_bg_file(self, input_path: Path, output_path: Path):
+        import rembg
         with open(input_path, "rb") as f:
             input_bytes = f.read()
 
         preset = self.presets.get(self.current_preset_name, {})
-        result_bytes = remove(input_bytes, **preset)
+        result_bytes = rembg.remove(input_bytes, **preset)
 
         with open(output_path, "wb") as f:
             f.write(result_bytes)
@@ -1137,186 +1138,66 @@ def main():
     if icon_path.exists():
         app.setWindowIcon(QIcon(str(icon_path)))
 
-    # --- UI Styling ---
+    splash_img_path = BASE_DIR / "splash.png"
+
+    if splash_img_path.exists():
+        pixmap = QPixmap(str(splash_img_path))
+        pixmap = pixmap.scaledToWidth(400, Qt.SmoothTransformation) 
+    else:
+        pixmap = QPixmap(400, 100)
+        pixmap.fill(Qt.white)
+
+    from PySide6.QtWidgets import QSplashScreen
+    splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
+    splash.show()
+    app.processEvents() 
+    global remove
+    try:
+        from rembg import remove as rembg_remove
+        dummy_data = b"\x00" * 100 
+        try:
+            rembg_remove(dummy_data) 
+        except:
+            pass
+    except ImportError:
+        pass
+
     app.setStyleSheet("""
-        QMainWindow {
-            background-color: #e9edf5;
-        }
-
-        QTabWidget::pane {
-            border: 1px solid #b3bcd1;
-            border-radius: 4px;
-            top: -1px;
-        }
-        QTabBar::tab {
-            background-color: #dde4f5;
-            border: 1px solid #b3bcd1;
-            padding: 4px 12px;
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
-            color: #1c2333;
-        }
-        QTabBar::tab:selected {
-            background-color: #f5f7fb;
-        }
-
-        /* Menu Bar */
-        QMenuBar {
-            background-color: #dbe2f2;
-            color: #1c2333;
-            border-bottom: 1px solid #b3bcd1;
-        }
-        QMenuBar::item {
-            background: transparent;
-            padding: 3px 8px;
-            color: #1c2333;
-        }
-        QMenuBar::item:selected {
-            background-color: #cfe2ff;
-            color: #101522;
-        }
-
-        /* Dropdown Menu */
-        QMenu {
-            background-color: #f7f9fc;
-            border: 1px solid #b3bcd1;
-        }
-        QMenu::item {
-            padding: 4px 20px;
-            color: #1c2333;
-        }
-        QMenu::item:selected {
-            background-color: #cfe2ff;
-            color: #101522;
-        }
-
-        QListWidget {
-            background-color: #f7f9fc;
-            border: 1px solid #b3bcd1;
-            border-radius: 4px;
-        }
-        QListWidget::item {
-            padding: 4px 6px;
-            color: #1c2333;
-        }
-        QListWidget::item:selected {
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #cfe2ff,
-                stop:1 #a9c5f2
-            );
-            color: #102039;
-        }
-
-        QFrame {
-            background-color: #f5f7fb;
-            border: 1px solid #b3bcd1;
-            border-radius: 6px;
-        }
-
-        /* Bottom Bar */
-        #PixelBar {
-            background-color: #dde4f5;
-            border-radius: 6px;
-            border: 1px solid #b3bcd1;
-        }
-
-        #PixelBar QLabel {
-            color: #4b556b;
-        }
-
-        QLabel {
-            color: #1c2333;
-        }
-
-        QPushButton {
-            color: #1c2333;
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #ffffff,
-                stop:1 #d8dfee
-            );
-            border: 1px solid #9ca7c2;
-            border-radius: 5px;
-            padding: 4px 12px;
-        }
-        QPushButton:hover {
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #ffffff,
-                stop:1 #e6ecf7
-            );
-        }
-        QPushButton:pressed {
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #cfd6e8,
-                stop:1 #b0bdd7
-            );
-        }
-
-        QProgressDialog {
-            background-color: #f5f7fb;
-        }
-
-        /* Dialogs */
-        QDialog, QMessageBox {
-            background-color: #f5f7fb;
-        }
-        QDialog QLabel, QMessageBox QLabel {
-            color: #1c2333;
-        }
-        QDialog QPushButton, QMessageBox QPushButton {
-            color: #1c2333;
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #ffffff,
-                stop:1 #d8dfee
-            );
-            border: 1px solid #9ca7c2;
-            border-radius: 5px;
-            padding: 4px 12px;
-        }
-        QDialog QPushButton:hover, QMessageBox QPushButton:hover {
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #ffffff,
-                stop:1 #e6ecf7
-            );
-        }
-        QDialog QPushButton:pressed, QMessageBox QPushButton:pressed {
-            background-color: qlineargradient(
-                x1:0, y1:0, x2:0, y2:1,
-                stop:0 #cfd6e8,
-                stop:1 #b0bdd7
-            );
-        }
-                      
-        QPlainTextEdit {
-            background-color: #f5f7fb;
-            color: #1c2333;
-            border: 1px solid #b3bcd1;
-            border-radius: 4px;
-        }
-
-        QComboBox {
-            background-color: #f7f9fc;
-            border: 1px solid #b3bcd1;
-            border-radius: 4px;
-            padding: 2px 6px;
-            color: #1c2333;
-        }
-        QComboBox QAbstractItemView {
-            background-color: #ffffff;
-            border: 1px solid #b3bcd1;
-            selection-background-color: #cfe2ff;
-            color: #1c2333;
-            selection-color: #101522;
-        }
+        QMainWindow { background-color: #e9edf5; }
+        /* ... (paste sisa CSS style kamu di sini seperti sebelumnya) ... */
+        QTabWidget::pane { border: 1px solid #b3bcd1; border-radius: 4px; top: -1px; }
+        QTabBar::tab { background-color: #dde4f5; border: 1px solid #b3bcd1; padding: 4px 12px; border-top-left-radius: 4px; border-top-right-radius: 4px; color: #1c2333; }
+        QTabBar::tab:selected { background-color: #f5f7fb; }
+        QMenuBar { background-color: #dbe2f2; color: #1c2333; border-bottom: 1px solid #b3bcd1; }
+        QMenuBar::item { background: transparent; padding: 3px 8px; color: #1c2333; }
+        QMenuBar::item:selected { background-color: #cfe2ff; color: #101522; }
+        QMenu { background-color: #f7f9fc; border: 1px solid #b3bcd1; }
+        QMenu::item { padding: 4px 20px; color: #1c2333; }
+        QMenu::item:selected { background-color: #cfe2ff; color: #101522; }
+        QListWidget { background-color: #f7f9fc; border: 1px solid #b3bcd1; border-radius: 4px; }
+        QListWidget::item { padding: 4px 6px; color: #1c2333; }
+        QListWidget::item:selected { background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #cfe2ff, stop:1 #a9c5f2); color: #102039; }
+        QFrame { background-color: #f5f7fb; border: 1px solid #b3bcd1; border-radius: 6px; }
+        #PixelBar { background-color: #dde4f5; border-radius: 6px; border: 1px solid #b3bcd1; }
+        #PixelBar QLabel { color: #4b556b; }
+        QLabel { color: #1c2333; }
+        QPushButton { color: #1c2333; background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ffffff, stop:1 #d8dfee); border: 1px solid #9ca7c2; border-radius: 5px; padding: 4px 12px; }
+        QPushButton:hover { background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ffffff, stop:1 #e6ecf7); }
+        QPushButton:pressed { background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #cfd6e8, stop:1 #b0bdd7); }
+        QProgressDialog { background-color: #f5f7fb; }
+        QDialog, QMessageBox { background-color: #f5f7fb; }
+        QDialog QLabel, QMessageBox QLabel { color: #1c2333; }
+        QDialog QPushButton, QMessageBox QPushButton { color: #1c2333; background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ffffff, stop:1 #d8dfee); border: 1px solid #9ca7c2; border-radius: 5px; padding: 4px 12px; }
+        QPlainTextEdit { background-color: #f5f7fb; color: #1c2333; border: 1px solid #b3bcd1; border-radius: 4px; }
+        QComboBox { background-color: #f7f9fc; border: 1px solid #b3bcd1; border-radius: 4px; padding: 2px 6px; color: #1c2333; }
+        QComboBox QAbstractItemView { background-color: #ffffff; border: 1px solid #b3bcd1; selection-background-color: #cfe2ff; color: #1c2333; selection-color: #101522; }
     """)
 
     win = LABOKitMainWindow()
     win.show()
+    
+    splash.finish(win)
+    
     sys.exit(app.exec())
 
 
