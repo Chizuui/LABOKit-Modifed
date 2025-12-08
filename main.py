@@ -18,6 +18,7 @@ APP_DATA.mkdir(parents=True, exist_ok=True)
 MODEL_DIR = APP_DATA / "models"
 REALESRGAN_DIR = APP_DATA / "realesrgan"
 PLUGIN_DIR = APP_DATA / "plugins"
+FFMPEG_DIR = APP_DATA / "ffmpeg"
 
 # Setup Environment Variables
 os.environ["U2NET_HOME"] = str(MODEL_DIR)
@@ -75,7 +76,13 @@ def deploy_assets():
             shutil.copytree(INTERNAL_DIR / "realesrgan", REALESRGAN_DIR)
         except Exception as e: print(f"Tool deploy error: {e}")
 
-    # 3. Plugins Folder
+    # 3. FFMPEG
+    if not FFMPEG_DIR.exists():
+        try:
+            shutil.copytree(INTERNAL_DIR / "ffmpeg", FFMPEG_DIR)
+        except Exception as e: print(f"FFmpeg deploy error: {e}")
+
+    # 4. Plugins Folder
     if not PLUGIN_DIR.exists():
         PLUGIN_DIR.mkdir(exist_ok=True)
         # Copy built-in plugins if available
@@ -84,6 +91,8 @@ def deploy_assets():
             for item in internal_plugins.glob("*.kit"):
                 try: shutil.copy2(item, PLUGIN_DIR / item.name)
                 except: pass
+
+
 
 # ==========================================
 # TABS
