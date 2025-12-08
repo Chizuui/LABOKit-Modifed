@@ -46,7 +46,7 @@ Give your images a stunning retro aesthetic. Apply old-school shading and color 
 
 ![Dithering FX Preview](gif/Dithering_FX_Preview.gif)
 
-### 3. Image Converter Pro
+### 3. Image Converter
 Batch convert WebP/JPG/PNG/ICO/BMP with quality control and transparency handling. (Batch-able!)
 * **Formats:** JPG, PNG, WEBP, BMP, ICO.
 * Auto-flatten transparency for JPG, quality sliders for compression, and detailed file info inspector.
