@@ -260,7 +260,23 @@ class BgRemoverTab(QWidget):
         if self.list_w.currentRow() >= 0: self._update_prev(self.image_paths[self.list_w.currentRow()])
 
     def show_help(self):
-        QMessageBox.information(self, "Help", "LABOKit BG Remover.\nAdd images -> Select Preset -> Process.\nResults saved to output folder.")
+        text = (
+            "<h3>LABOKit – Background Remover</h3>"
+            "<p>Powered by <b>U^2-Net</b> (Machine Learning).</p>"
+            "<hr>"
+            "<b>1. Add Images</b><br>"
+            "Drag & drop files or use the 'Add Images' button. Supports JPG, PNG, WEBP, BMP.<br><br>"
+            "<b>2. Sensitivity Presets</b>"
+            "<ul>"
+            "<li><b>Standard:</b> Best for general use. Fast & clean edges.</li>"
+            "<li><b>Medium:</b> Applies post-processing to smooth rough edges.</li>"
+            "<li><b>High:</b> Aggressive alpha matting. Good for hair/fur details but slower.</li>"
+            "</ul>"
+            "<b>3. Processing</b><br>"
+            "Click 'Remove BG (All)' to process the entire list.<br>"
+            "Results are saved automatically to the <b>LABOKit_BG</b> folder next to your input files.<br><br>"
+        )
+        QMessageBox.information(self, "Help – BG Remover", text)
 
 class UpscalerTab(QWidget):
     def __init__(self, parent=None):
@@ -437,7 +453,23 @@ class UpscalerTab(QWidget):
         if self.list_w.currentItem(): self.on_item(self.list_w.currentItem(), None)
 
     def show_help(self):
-        QMessageBox.information(self, "Help", "LABOKit Upscaler.\nUses Real-ESRGAN to upscale images offline.\nModels are stored in AppData.")
+        text = (
+            "<h3>LABOKit – Upscaler</h3>"
+            "<p>Powered by <b>Real-ESRGAN</b> (NCNN Vulkan).</p>"
+            "<hr>"
+            "<b>1. Add Images</b><br>"
+            "Load low-resolution images you want to enhance.<br><br>"
+            "<b>2. Model Selection</b>"
+            "<ul>"
+            "<li><b>realesrgan-x4plus:</b> Best for photos, realistic textures, and general images.</li>"
+            "<li><b>realesrgan-x4plus-anime:</b> Optimized for 2D illustration, anime, and line art (faster & sharper lines).</li>"
+            "</ul>"
+            "<b>3. Scale Factor</b><br>"
+            "Choose <b>4x</b> for maximum detail or <b>2x</b> for a quicker resize.<br><br>"
+            "<b>⚠️ Hardware Note:</b><br>"
+            "This feature requires a Vulkan-compatible GPU. On first run, it might take a few seconds to initialize."
+        )
+        QMessageBox.information(self, "Help – Upscaler", text)
 
 # ==========================================
 # MAIN WINDOW
@@ -553,6 +585,8 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("LABOKit")
     if ICON_PATH.exists(): app.setWindowIcon(QIcon(str(ICON_PATH)))
+    default_font = QFont("Consolas", 9)
+    app.setFont(default_font)
 
     # Simple Splash (Image Only)
     splash_img_path = INTERNAL_DIR / "splash.png"
@@ -585,7 +619,7 @@ def main():
         QMenu::item:selected { background-color: #cfe2ff; color: #101522; }
         QListWidget { background-color: #f7f9fc; border: 1px solid #b3bcd1; border-radius: 4px; }
         QListWidget::item { padding: 4px 6px; color: #1c2333; }
-        QListWidget::item:selected { background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #cfe2ff, stop:1 #a9c5f2); color: #102039; }
+        QListWidget::item:selected { color: #102039; }
         QFrame { background-color: #f5f7fb; border: 1px solid #b3bcd1; border-radius: 6px; }
         #PixelBar { background-color: #dde4f5; border-radius: 6px; border: 1px solid #b3bcd1; }
         #PixelBar QLabel { color: #4b556b; }
