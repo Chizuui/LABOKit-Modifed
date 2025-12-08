@@ -1,0 +1,3 @@
+PySide6
+rembg[gpu] 
+onnxruntime 
