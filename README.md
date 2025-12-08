@@ -26,6 +26,8 @@
 4.  Run `LABOKit.exe`.
 
 > **Note:** The portable version is larger in size because it bundles the Python engine and necessary libraries.
+> **⚠️ Hardware Requirement:**
+> The **Upscaling** feature is powered by Real-ESRGAN (NCNN) and requires a **GPU with Vulkan support**. If your GPU does not support Vulkan, the upscaler process may fail or crash.
 
 ## Advanced Plugins System
 
@@ -68,6 +70,7 @@ LABOKit is free and open-source. By purchasing this bundle (Pay What You Want), 
 ### Prerequisites
 * Python 3.10+
 * Windows (Recommended)
+* **Vulkan-compatible GPU** (Required for the Upscaler feature)
 
 ### Setup
 1.  Clone the repository:
