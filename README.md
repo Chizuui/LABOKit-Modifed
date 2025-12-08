@@ -1,4 +1,4 @@
-# LABOKit
+# LABOKit v1.4
 
 <img width="1365" height="416" alt="Image" src="https://github.com/user-attachments/assets/f4ab1e1b-de1c-4a0f-a648-25b210f0ea4f" />
 
@@ -21,15 +21,33 @@
 ## 📥 Download (Portable Version)
 
 1.  Go to the **[Releases](https://github.com/wagakano/LABOKit/releases)** page.
-2.  Download the `LABOKit_v1.2.zip` (or latest version).
-3.  Extract the zip file.
-4.  Run `LABOKit.exe`.
+2.  Download the `LABOKit_v1.4.exe` (or latest version).
+3.  Run `LABOKit.exe`.
 
 > **Note:** The portable version is larger in size because it bundles the Python engine and necessary libraries.
 
-## Advanced Plugins System
+> **⚠️ Hardware Requirement:**
+> The **Upscaling** feature is powered by Real-ESRGAN (NCNN) and requires a **GPU with Vulkan support**. If your GPU does not support Vulkan, the upscaler process may fail or crash.
+> **⚠️ Performance Notice:**
+> Since LABOKit processes everything locally using advanced AI models, performance depends entirely on your computer's specifications.
+> * **High-end PC / Dedicated GPU:** Fast & smooth processing.
+> * **Low-end PC / Integrated Graphics:** Expect longer processing times and potential lag during heavy tasks (like Upscaling).
 
-LABOKit capabilities can be extended using `.kit` plugins. You can get the **Advanced Plugin Bundle** by supporting the development (Donation/Pay What You Want).
+## Plugins
+LABOKit capabilities can be extended using `.kit` plugins. 
+
+### How to Install Plugins (.kit)
+1.  Open **LABOKit**.
+2.  Go to menu **Config** > **Load Plugin (.kit)...**
+3.  Select the plugin file. It will be installed permanently.
+*(To uninstall, simply delete the file from the plugins folder via **Config > Open Plugins Folder**).*
+
+### Available Plugin 
+* **VideoUpscaler.kit** (Work in Progress)
+* **PhotoPull.kit** (Work in Progress)
+
+## Advanced Plugins
+Also you can get the **Advanced Plugin Bundle** by supporting the development (Donation/Pay What You Want).
 
 ### 1. Quick Vector
 Turn your raster images (JPG/PNG/BMP) into scalable vector graphics (SVG) instantly. (Batch-able!)
@@ -68,6 +86,7 @@ LABOKit is free and open-source. By purchasing this bundle (Pay What You Want), 
 ### Prerequisites
 * Python 3.10+
 * Windows (Recommended)
+* **Vulkan-compatible GPU** (Required for the Upscaler feature)
 
 ### Setup
 1.  Clone the repository:
@@ -98,21 +117,7 @@ LABOKit is free and open-source. By purchasing this bundle (Pay What You Want), 
     ```
 
 ## How to Use
-
-### 1. BG Remover
-* Drag & drop or add images to the list.
-* Select a preset (Standard/Medium/High).
-* Click **Remove BG**. Output will be saved in `LABOKit_BG` folder.
-
-### 2. Upscaler
-* Add images to the Upscaler tab.
-* Choose Scale (2x/4x) and Model (General/Anime).
-* Click **Upscale**. Output will be saved in `LABOKit_UP` folder.
-
-### How to Install Plugins (.kit)
-1.  Open **LABOKit**.
-2.  Go to menu **Config** > **Load Plugin (.kit)...**
-3.  Select the plugin file. It will be installed permanently. (You can remove it via directory)
+> A detailed user guide explaining all terms and features is available directly inside the app. Just go to the **Help** menu in the top bar!
 
 ## 📄 License & Credits
 See [LABOKit_NOTICE.txt](LABOKit_NOTICE.txt) for detailed license information regarding third-party components (rembg, Real-ESRGAN, Qt, etc.).

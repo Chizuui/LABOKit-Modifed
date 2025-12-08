@@ -6,6 +6,7 @@ import importlib.util
 import importlib.machinery
 import shutil
 from pathlib import Path
+from PIL import Image
 
 # --- PATH & ASSETS SETUP ---
 # 1. Internal Path (Source files inside EXE/Build)
@@ -18,6 +19,7 @@ APP_DATA.mkdir(parents=True, exist_ok=True)
 MODEL_DIR = APP_DATA / "models"
 REALESRGAN_DIR = APP_DATA / "realesrgan"
 PLUGIN_DIR = APP_DATA / "plugins"
+FFMPEG_DIR = APP_DATA / "ffmpeg"
 
 # Setup Environment Variables
 os.environ["U2NET_HOME"] = str(MODEL_DIR)
@@ -75,7 +77,13 @@ def deploy_assets():
             shutil.copytree(INTERNAL_DIR / "realesrgan", REALESRGAN_DIR)
         except Exception as e: print(f"Tool deploy error: {e}")
 
-    # 3. Plugins Folder
+    # 3. FFMPEG
+    if not FFMPEG_DIR.exists():
+        try:
+            shutil.copytree(INTERNAL_DIR / "ffmpeg", FFMPEG_DIR)
+        except Exception as e: print(f"FFmpeg deploy error: {e}")
+
+    # 4. Plugins Folder
     if not PLUGIN_DIR.exists():
         PLUGIN_DIR.mkdir(exist_ok=True)
         # Copy built-in plugins if available
@@ -84,6 +92,8 @@ def deploy_assets():
             for item in internal_plugins.glob("*.kit"):
                 try: shutil.copy2(item, PLUGIN_DIR / item.name)
                 except: pass
+
+
 
 # ==========================================
 # TABS
@@ -260,7 +270,23 @@ class BgRemoverTab(QWidget):
         if self.list_w.currentRow() >= 0: self._update_prev(self.image_paths[self.list_w.currentRow()])
 
     def show_help(self):
-        QMessageBox.information(self, "Help", "LABOKit BG Remover.\nAdd images -> Select Preset -> Process.\nResults saved to output folder.")
+        text = (
+            "<h3>LABOKit – Background Remover</h3>"
+            "<p>Powered by <b>U^2-Net</b> (Machine Learning).</p>"
+            "<hr>"
+            "<b>1. Add Images</b><br>"
+            "Drag & drop files or use the 'Add Images' button. Supports JPG, PNG, WEBP, BMP.<br><br>"
+            "<b>2. Sensitivity Presets</b>"
+            "<ul>"
+            "<li><b>Standard:</b> Best for general use. Fast & clean edges.</li>"
+            "<li><b>Medium:</b> Applies post-processing to smooth rough edges.</li>"
+            "<li><b>High:</b> Aggressive alpha matting. Good for hair/fur details but slower.</li>"
+            "</ul>"
+            "<b>3. Processing</b><br>"
+            "Click 'Remove BG (All)' to process the entire list.<br>"
+            "Results are saved automatically to the <b>LABOKit_BG</b> folder next to your input files.<br><br>"
+        )
+        QMessageBox.information(self, "Help – BG Remover", text)
 
 class UpscalerTab(QWidget):
     def __init__(self, parent=None):
@@ -413,31 +439,73 @@ class UpscalerTab(QWidget):
         
         out = self.ensure_out(paths[0])
         dlg = QProgressDialog("Upscaling...", "Cancel", 0, len(paths), self)
-        dlg.setWindowModality(Qt.ApplicationModal); dlg.show()
+        dlg.setWindowModality(Qt.ApplicationModal)
+        dlg.show()
         
         cnt = 0
-        scale = int(self.combo_s.currentText().replace("x",""))
+        target_scale = int(self.combo_s.currentText().replace("x",""))
         model = self.combo_m.currentText()
         
         for i, p in enumerate(paths):
             if dlg.wasCanceled(): break
             dlg.setLabelText(f"Processing {p.name}...")
             QApplication.processEvents()
+            
             try:
-                opath = out / f"{p.stem}_up{scale}x.png"
-                cmd = [str(REALESRGAN_EXE), "-i", str(p), "-o", str(opath), "-n", model, "-s", str(scale)]
+                opath = out / f"{p.stem}_up{target_scale}x.png"
+                
+                exec_scale = 4 
+                
+                cmd = [
+                    str(REALESRGAN_EXE), 
+                    "-i", str(p), 
+                    "-o", str(opath), 
+                    "-n", model, 
+                    "-s", str(exec_scale)
+                ]
+                
                 flags = subprocess.CREATE_NO_WINDOW if sys.platform=="win32" else 0
-                subprocess.run(cmd, capture_output=True, creationflags=flags)
+                
+                subprocess.run(cmd, capture_output=True, creationflags=flags, cwd=str(REALESRGAN_DIR))
+                
+                if target_scale == 2:
+
+                    with Image.open(opath) as img:
+                        new_w = img.width // 2
+                        new_h = img.height // 2
+                        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                        img.save(opath)
+
                 self.output_map[p] = opath
                 cnt += 1
-            except Exception as e: print(e)
+            except Exception as e: 
+                print(f"Upscale Error: {e}")
+            
             dlg.setValue(i+1)
+        
         dlg.close()
         QMessageBox.information(self, "Done", f"Upscaled {cnt} images.\nFolder: {out}")
         if self.list_w.currentItem(): self.on_item(self.list_w.currentItem(), None)
 
     def show_help(self):
-        QMessageBox.information(self, "Help", "LABOKit Upscaler.\nUses Real-ESRGAN to upscale images offline.\nModels are stored in AppData.")
+        text = (
+            "<h3>LABOKit – Upscaler</h3>"
+            "<p>Powered by <b>Real-ESRGAN</b> (NCNN Vulkan).</p>"
+            "<hr>"
+            "<b>1. Add Images</b><br>"
+            "Load low-resolution images you want to enhance.<br><br>"
+            "<b>2. Model Selection</b>"
+            "<ul>"
+            "<li><b>realesrgan-x4plus:</b> Best for photos, realistic textures, and general images.</li>"
+            "<li><b>realesrgan-x4plus-anime:</b> Optimized for 2D illustration, anime, and line art (faster & sharper lines).</li>"
+            "</ul>"
+            "<b>3. Scale Factor</b><br>"
+            "Choose <b>4x</b> for maximum detail or <b>2x</b> for a quicker resize.<br><br>"
+            "<b>⚠️ Hardware Note:</b><br>"
+            "This feature requires a Vulkan-compatible GPU. On first run, it might take a few seconds to initialize."
+        )
+        QMessageBox.information(self, "Help – Upscaler", text)
+        
 
 # ==========================================
 # MAIN WINDOW
@@ -502,7 +570,7 @@ class LABOKitMainWindow(QMainWindow):
             try:
                 shutil.copy2(f, PLUGIN_DIR)
                 self._load_plugins()
-                QMessageBox.information(self, "Success", "Plugin loaded!\nIt will persist in AppData.")
+                QMessageBox.information(self, "Success", "Plugin loaded!")
             except Exception as e: QMessageBox.warning(self, "Error", str(e))
 
     def open_url(self, url): QDesktopServices.openUrl(QUrl(url))
@@ -553,6 +621,8 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("LABOKit")
     if ICON_PATH.exists(): app.setWindowIcon(QIcon(str(ICON_PATH)))
+    default_font = QFont("Consolas", 9)
+    app.setFont(default_font)
 
     # Simple Splash (Image Only)
     splash_img_path = INTERNAL_DIR / "splash.png"
@@ -585,7 +655,7 @@ def main():
         QMenu::item:selected { background-color: #cfe2ff; color: #101522; }
         QListWidget { background-color: #f7f9fc; border: 1px solid #b3bcd1; border-radius: 4px; }
         QListWidget::item { padding: 4px 6px; color: #1c2333; }
-        QListWidget::item:selected { background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #cfe2ff, stop:1 #a9c5f2); color: #102039; }
+        QListWidget::item:selected { color: #102039; }
         QFrame { background-color: #f5f7fb; border: 1px solid #b3bcd1; border-radius: 6px; }
         #PixelBar { background-color: #dde4f5; border-radius: 6px; border: 1px solid #b3bcd1; }
         #PixelBar QLabel { color: #4b556b; }
