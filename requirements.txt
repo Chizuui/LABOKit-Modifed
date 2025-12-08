@@ -3,3 +3,5 @@ rembg[gpu]
 onnxruntime 
 Pillow>=9.0.0
 numpy
+opencv-python-headless
+svgwrite
