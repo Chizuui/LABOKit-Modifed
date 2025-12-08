@@ -24,7 +24,7 @@
 
 > **Note:** The portable version is larger in size because it bundles the Python engine and necessary libraries.
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 * Python 3.10+
@@ -58,7 +58,7 @@
     python main.py
     ```
 
-## 🧩 How to Use
+## How to Use
 
 ### 1. BG Remover
 * Drag & drop or add images to the list.
