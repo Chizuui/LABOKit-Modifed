@@ -46,7 +46,7 @@ Give your images a stunning retro aesthetic. Apply old-school shading and color 
 * **STEINS;GATE Special:** Unique "Glitch" animation on the World Line Meter.
 (Batch-able!)
 
-![Dithering FX Preview](gif/Dithering FX Preview.gif)
+![Dithering FX Preview](gif/Dithering_FX_Preview.gif)
 
 ### 3. Image Converter Pro
 Batch convert WebP/JPG/PNG/ICO/BMP with quality control and transparency handling.
