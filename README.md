@@ -26,6 +26,7 @@
 4.  Run `LABOKit.exe`.
 
 > **Note:** The portable version is larger in size because it bundles the Python engine and necessary libraries.
+
 > **⚠️ Hardware Requirement:**
 > The **Upscaling** feature is powered by Real-ESRGAN (NCNN) and requires a **GPU with Vulkan support**. If your GPU does not support Vulkan, the upscaler process may fail or crash.
 
@@ -101,16 +102,7 @@ LABOKit is free and open-source. By purchasing this bundle (Pay What You Want), 
     ```
 
 ## How to Use
-
-### 1. BG Remover
-* Drag & drop or add images to the list.
-* Select a preset (Standard/Medium/High).
-* Click **Remove BG**. Output will be saved in `LABOKit_BG` folder.
-
-### 2. Upscaler
-* Add images to the Upscaler tab.
-* Choose Scale (2x/4x) and Model (General/Anime).
-* Click **Upscale**. Output will be saved in `LABOKit_UP` folder.
+> A detailed user guide explaining all terms and features is available directly inside the app. Just go to the **Help** menu in the top bar!
 
 ### How to Install Plugins (.kit)
 1.  Open **LABOKit**.

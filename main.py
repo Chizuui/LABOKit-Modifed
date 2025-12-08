@@ -570,7 +570,7 @@ class LABOKitMainWindow(QMainWindow):
             try:
                 shutil.copy2(f, PLUGIN_DIR)
                 self._load_plugins()
-                QMessageBox.information(self, "Success", "Plugin loaded!\nIt will persist in AppData.")
+                QMessageBox.information(self, "Success", "Plugin loaded!")
             except Exception as e: QMessageBox.warning(self, "Error", str(e))
 
     def open_url(self, url): QDesktopServices.openUrl(QUrl(url))
