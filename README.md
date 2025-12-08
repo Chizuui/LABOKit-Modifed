@@ -32,27 +32,24 @@
 LABOKit capabilities can be extended using `.kit` plugins. You can get the **Advanced Plugin Bundle** by supporting the development (Donation/Pay What You Want).
 
 ### 1. Quick Vector
-Turn your raster images (JPG/PNG/BMP) into scalable vector graphics (SVG) instantly.
+Turn your raster images (JPG/PNG/BMP) into scalable vector graphics (SVG) instantly. (Batch-able!)
 * **Best for:** Logos, icons, signatures, and black & white line art.
 * **Features:** Threshold slider, smoothness control, real-time binary preview, and batch processing.
-(Batch-able!)
 
 <img width="1132" height="560" alt="Image" src="https://github.com/user-attachments/assets/a13e5f55-bd17-40ca-841f-e1c001506a14" />
 
 ### 2. Dithering FX 
-Give your images a stunning retro aesthetic. Apply old-school shading and color palettes inspired by vintage hardware.
+Give your images a stunning retro aesthetic. Apply old-school shading and color palettes inspired by vintage hardware. (Batch-able!)
 * **Styles:** GameBoy (Classic/Pocket), Macintosh 1-Bit, Cyberpunk, and Halftone.
 * **Algorithms:** Floyd-Steinberg, Bayer Matrix (Ordered), and Noise.
 * **STEINS;GATE Special:** Unique "Glitch" animation on the World Line Meter.
-(Batch-able!)
 
 ![Dithering FX Preview](gif/Dithering_FX_Preview.gif)
 
 ### 3. Image Converter Pro
-Batch convert WebP/JPG/PNG/ICO/BMP with quality control and transparency handling.
+Batch convert WebP/JPG/PNG/ICO/BMP with quality control and transparency handling. (Batch-able!)
 * **Formats:** JPG, PNG, WEBP, BMP, ICO.
 * Auto-flatten transparency for JPG, quality sliders for compression, and detailed file info inspector.
-(Batch-able!)
 
 <img width="1134" height="475" alt="Image" src="https://github.com/user-attachments/assets/c974205b-f711-4a89-ae20-9cbd2cfd3dad" />
 
