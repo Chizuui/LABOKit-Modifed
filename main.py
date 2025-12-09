@@ -58,27 +58,13 @@ ICON_PATH = INTERNAL_DIR / "labokit.ico"
 remove = None
 
 # --- IMPORTS ---
-from PySide6.QtCore import QSize, Qt, QTimer, QUrl
-from PySide6.QtGui import QAction, QDesktopServices, QFont, QIcon, QPixmap
+from PySide6.QtCore import Qt, QSize, QTimer, QUrl
+from PySide6.QtGui import QAction, QPixmap, QFont, QIcon, QDesktopServices
 from PySide6.QtWidgets import (
-    QApplication,
-    QComboBox,
-    QDialog,
-    QFileDialog,
-    QFrame,
-    QHBoxLayout,
-    QLabel,
-    QListWidget,
-    QListWidgetItem,
-    QMainWindow,
-    QMessageBox,
-    QPlainTextEdit,
-    QProgressDialog,
-    QPushButton,
-    QSplashScreen,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QListWidget, QListWidgetItem, QLabel, QPushButton, QFileDialog,
+    QMessageBox, QProgressDialog, QFrame, QComboBox, QTabWidget,
+    QDialog, QPlainTextEdit, QSplashScreen
 )
 
 IMAGE_FILTER = (
@@ -88,24 +74,11 @@ IMAGE_FILTER = (
 
 # --- RUNNING TEXT DATA (World Line Meter) ---
 RUNNING_VALUES = [
-    "0.000000α",
-    "0.134891α",
-    "0.210317α",
-    "0.295582α",
-    "0.334581α",
-    "0.337187α",
-    "0.409420α",
-    "0.456903α",
-    "0.571024α",
-    "0.571046α",
-    "0.615483α",
-    "0.934587α",
-    "1.048596β",
-    "1.130205β",
-    "1.130426β",
-    "3.019430δ",
-    "3.372329δ",
-    "4.456441ε",
+    "0.000000α", "0.134891α", "0.210317α", "0.295582α",
+    "0.334581α", "0.337187α", "0.409420α", "0.456903α",
+    "0.571024α", "0.571046α", "0.615483α", "0.934587α",
+    "1.048596β", "1.130205β", "1.130426β", "3.019430δ",
+    "3.372329δ", "4.456441ε"
 ]
 
 # --- BG REMOVER PRESETS ---
